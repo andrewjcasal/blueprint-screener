@@ -13,4 +13,35 @@ export async function getScreenerData() {
     console.error('Error fetching screener data:', error)
     throw error
   }
+}
+
+type Answer = {
+  value: number
+  question_id: string
+}
+
+export async function submitAnswers(answers: Record<string, number>) {
+  try {
+    // Convert the answers object to the expected format
+    const formattedAnswers = Object.entries(answers).map(([question_id, value]) => ({
+      question_id,
+      value
+    }))
+
+    const { data, error } = await supabase.functions.invoke('submit-answers', {
+      method: 'POST',
+      body: {
+        answers: formattedAnswers
+      }
+    })
+
+    if (error) {
+      throw error
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error submitting answers:', error)
+    throw error
+  }
 } 
