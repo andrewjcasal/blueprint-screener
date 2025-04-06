@@ -31,6 +31,18 @@ type ScreenerData = {
   full_name: string
 }
 
+type DomainScores = {
+  depression: number
+  mania: number
+  anxiety: number
+  substanceUse: number
+}
+
+type SubmissionResult = {
+  scores: DomainScores
+  results: string[]
+}
+
 export function Screener() {
   const [screenerData, setScreenerData] = useState<ScreenerData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -39,6 +51,8 @@ export function Screener() {
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [assessmentResults, setAssessmentResults] =
+    useState<SubmissionResult | null>(null)
 
   useEffect(() => {
     async function loadScreenerData() {
@@ -97,6 +111,12 @@ export function Screener() {
       setSubmitting(true)
       const result = await submitAnswers(answers)
       console.log("Submission result:", result)
+
+      // Store the assessment results with scores and recommendations
+      if (result && result.data) {
+        setAssessmentResults(result.data as SubmissionResult)
+      }
+
       setSubmitSuccess(true)
     } catch (err) {
       console.error("Error submitting answers:", err)
@@ -106,13 +126,107 @@ export function Screener() {
     }
   }
 
-  // If submission was successful, show a success message
+  // If submission was successful, show assessment results
   if (submitSuccess) {
     return (
       <div className="screener-container">
-        <div className="success-message">
-          <h2>Thank you!</h2>
-          <p>Your answers have been submitted successfully.</p>
+        <div className="results-container">
+          <h2 className="results-title">Screener Results</h2>
+
+          {assessmentResults && (
+            <>
+              <div className="scores-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Domain</th>
+                      <th>Total Score</th>
+                      <th>Level-2 Assessment</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      className={
+                        assessmentResults.scores.depression >= 2
+                          ? "threshold-met"
+                          : ""
+                      }
+                    >
+                      <td>Depression</td>
+                      <td>{assessmentResults.scores.depression}</td>
+                      <td>
+                        {assessmentResults.scores.depression >= 2
+                          ? "PHQ-9"
+                          : "-"}
+                      </td>
+                    </tr>
+                    <tr
+                      className={
+                        assessmentResults.scores.mania >= 2
+                          ? "threshold-met"
+                          : ""
+                      }
+                    >
+                      <td>Mania</td>
+                      <td>{assessmentResults.scores.mania}</td>
+                      <td>
+                        {assessmentResults.scores.mania >= 2 ? "ASRM" : "-"}
+                      </td>
+                    </tr>
+                    <tr
+                      className={
+                        assessmentResults.scores.anxiety >= 2
+                          ? "threshold-met"
+                          : ""
+                      }
+                    >
+                      <td>Anxiety</td>
+                      <td>{assessmentResults.scores.anxiety}</td>
+                      <td>
+                        {assessmentResults.scores.anxiety >= 2 ? "PHQ-9" : "-"}
+                      </td>
+                    </tr>
+                    <tr
+                      className={
+                        assessmentResults.scores.substanceUse >= 1
+                          ? "threshold-met"
+                          : ""
+                      }
+                    >
+                      <td>Substance Use</td>
+                      <td>{assessmentResults.scores.substanceUse}</td>
+                      <td>
+                        {assessmentResults.scores.substanceUse >= 1
+                          ? "ASSIST"
+                          : "-"}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {assessmentResults.results.length > 0 ? (
+                <div className="recommendations">
+                  <h3>Recommended Level-2 Assessments:</h3>
+                  <ul className="assessment-list">
+                    {assessmentResults.results.map((assessment) => (
+                      <li key={assessment} className="assessment-item">
+                        {assessment}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="no-recommendations">
+                  <p>No Level-2 assessments recommended at this time.</p>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="completion-message">
+            <p>Thank you for completing the screener.</p>
+          </div>
         </div>
       </div>
     )
