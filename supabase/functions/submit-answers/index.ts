@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 type Answer = {
   value: number
@@ -32,6 +33,11 @@ const domainAssessments = {
   anxiety: 'PHQ-9',
   substanceUse: 'ASSIST'
 }
+
+// Initialize Supabase client using environment variables
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 serve(async (req) => {
   // Set CORS headers
@@ -100,19 +106,52 @@ serve(async (req) => {
       // Remove duplicates from recommended assessments
       const uniqueAssessments = [...new Set(recommendedAssessments)]
       
-      // Log answers and scores for debugging
-      console.log('Received answers:', submission.answers)
-      console.log('Domain scores:', domainScores)
-      console.log('Recommended assessments:', uniqueAssessments)
+      // Get the assessment IDs for the next assessments
+      const { data: assessmentData, error: assessmentError } = await supabase
+        .from('assessments')
+        .select('id, name')
+        .in('name', uniqueAssessments)
+      
+      if (assessmentError) {
+        throw new Error(`Error fetching assessment IDs: ${assessmentError.message}`)
+      }
+      
+      // Map assessment names to their IDs
+      const assessmentIdMap = assessmentData?.reduce((acc, curr) => {
+        acc[curr.name] = curr.id
+        return acc
+      }, {} as Record<string, string>) || {}
+      
+      // Create next assessment IDs array
+      const nextAssessmentIds = uniqueAssessments.map(name => assessmentIdMap[name]).filter(Boolean)
+      
+      // Store submission in database
+      // For the initial submission, we're setting the assessment_id to null
+      // since this is the initial screener, not a specific assessment
+      const { data: submissionData, error: submissionError } = await supabase
+        .from('submissions')
+        .insert({
+          assessment_id: null, // Initial screener has no specific assessment
+          responses: submission.answers,
+          scores: domainScores,
+          next: nextAssessmentIds
+        })
+        .select()
+      
+      if (submissionError) {
+        throw new Error(`Error storing submission: ${submissionError.message}`)
+      }
       
       // Return success response with scores and recommended assessments
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'Answers scored successfully',
+          message: 'Answers scored and stored successfully',
           data: {
+            id: submissionData?.[0]?.id,
             scores: domainScores,
-            results: uniqueAssessments
+            results: uniqueAssessments,
+            nextIds: nextAssessmentIds
           }
         }),
         {

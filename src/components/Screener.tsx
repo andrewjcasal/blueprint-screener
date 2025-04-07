@@ -39,8 +39,10 @@ type DomainScores = {
 }
 
 type SubmissionResult = {
+  id?: string
   scores: DomainScores
   results: string[]
+  nextIds: string[]
 }
 
 export function Screener() {
@@ -70,10 +72,34 @@ export function Screener() {
     loadScreenerData()
   }, [])
 
-  if (loading) return <div className="loading">Loading screener...</div>
-  if (error) return <div className="error">{error}</div>
+  if (loading) {
+    return (
+      <div className="screener-container" style={{ margin: "0 auto" }}>
+        <div className="spinner-container">
+          <div className="spinner"></div>
+          <p>Loading screener...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error)
+    return (
+      <div className="screener-container">
+        <div className="error-container">
+          <p className="error">{error}</p>
+        </div>
+      </div>
+    )
+
   if (!screenerData)
-    return <div className="error">No screener data available</div>
+    return (
+      <div className="screener-container">
+        <div className="error-container">
+          <p className="error">No screener data available</p>
+        </div>
+      </div>
+    )
 
   const section = screenerData.content.sections[0]
   const questions = section.questions
@@ -110,7 +136,6 @@ export function Screener() {
     try {
       setSubmitting(true)
       const result = await submitAnswers(answers)
-      console.log("Submission result:", result)
 
       // Store the assessment results with scores and recommendations
       if (result && result.data) {
@@ -132,6 +157,13 @@ export function Screener() {
       <div className="screener-container">
         <div className="results-container">
           <h2 className="results-title">Screener Results</h2>
+
+          {assessmentResults?.id && (
+            <div className="submission-id">
+              Submission ID:{" "}
+              <span className="id-value">{assessmentResults.id}</span>
+            </div>
+          )}
 
           {assessmentResults && (
             <>
@@ -209,9 +241,16 @@ export function Screener() {
                 <div className="recommendations">
                   <h3>Recommended Level-2 Assessments:</h3>
                   <ul className="assessment-list">
-                    {assessmentResults.results.map((assessment) => (
+                    {assessmentResults.results.map((assessment, index) => (
                       <li key={assessment} className="assessment-item">
                         {assessment}
+                        {assessmentResults.nextIds &&
+                          assessmentResults.nextIds[index] && (
+                            <span className="assessment-id">
+                              (ID:{" "}
+                              {assessmentResults.nextIds[index].slice(0, 8)})
+                            </span>
+                          )}
                       </li>
                     ))}
                   </ul>
