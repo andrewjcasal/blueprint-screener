@@ -110,22 +110,16 @@ export function Screener() {
       ...prev,
       [questionId]: value,
     }))
-  }
 
-  const goToNextQuestion = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1)
-    }
-  }
-
-  const goToPrevQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1)
-    }
+    // Add a small delay before advancing to the next question
+    setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex((prev) => prev + 1)
+      }
+    }, 500) // delay to show the selection
   }
 
   const isLastQuestion = currentQuestionIndex === questions.length - 1
-  const isFirstQuestion = currentQuestionIndex === 0
 
   const handleSubmit = async () => {
     // Only proceed if we have all answers
@@ -274,7 +268,9 @@ export function Screener() {
   return (
     <div className="screener-container">
       <div className="screener-header">
-        <h2>{screenerData.full_name}</h2>
+        <h2>
+          {screenerData.content.display_name}: {screenerData.full_name}
+        </h2>
         <p className="section-title">{section.title}</p>
       </div>
 
@@ -298,36 +294,22 @@ export function Screener() {
         selectedValue={answers[currentQuestion.question_id]}
       />
 
-      <div className="navigation-buttons flex justify-between">
-        <div>
-          {!isFirstQuestion && (
-            <button className="prev-button" onClick={goToPrevQuestion}>
-              Previous
-            </button>
-          )}
+      {isLastQuestion && (
+        <div
+          className="navigation-buttons"
+          style={{ justifyContent: "center", marginTop: "2rem" }}
+        >
+          <button
+            className="submit-button"
+            onClick={handleSubmit}
+            disabled={
+              Object.keys(answers).length !== questions.length || submitting
+            }
+          >
+            {submitting ? "Submitting..." : "Submit"}
+          </button>
         </div>
-        <div>
-          {!isLastQuestion ? (
-            <button
-              className="next-button"
-              onClick={goToNextQuestion}
-              disabled={isNaN(answers[currentQuestion.question_id])}
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              className="submit-button"
-              onClick={handleSubmit}
-              disabled={
-                Object.keys(answers).length !== questions.length || submitting
-              }
-            >
-              {submitting ? "Submitting..." : "Submit"}
-            </button>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   )
 } 
