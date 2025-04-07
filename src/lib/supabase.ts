@@ -15,11 +15,6 @@ export async function getScreenerData() {
   }
 }
 
-type Answer = {
-  value: number
-  question_id: string
-}
-
 export async function submitAnswers(answers: Record<string, number>) {
   try {
     // Convert the answers object to the expected format

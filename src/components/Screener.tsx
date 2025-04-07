@@ -51,7 +51,6 @@ export function Screener() {
   const [error, setError] = useState<string | null>(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, number>>({})
-  const [submitting, setSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [assessmentResults, setAssessmentResults] =
     useState<SubmissionResult | null>(null)
@@ -118,7 +117,6 @@ export function Screener() {
       } else {
         // This is the last question, submit automatically
         try {
-          setSubmitting(true)
           const result = await submitAnswers({
             ...answers,
             [questionId]: value,
@@ -131,11 +129,9 @@ export function Screener() {
         } catch (err) {
           console.error("Error submitting answers:", err)
           setError("Failed to submit answers. Please try again.")
-        } finally {
-          setSubmitting(false)
         }
       }
-    }, 500)
+    }, 300)
   }
 
   // If submission was successful, show assessment results

@@ -1,5 +1,3 @@
-import { useState } from 'react'
-
 type Answer = {
   title: string
   value: number
@@ -17,25 +15,31 @@ type ScreenerQuestionProps = {
   selectedValue?: number
 }
 
-export function ScreenerQuestion({ 
-  question, 
-  answers, 
+export function ScreenerQuestion({
+  question,
+  answers,
   onAnswer,
-  selectedValue 
+  selectedValue,
 }: ScreenerQuestionProps) {
   return (
     <div className="screener-question">
       <h3 className="question-title">{question.title}</h3>
-      
+
       <div className="answer-options">
         {answers.map((answer) => (
-          <div 
-            key={answer.value} 
-            className={`answer-option ${selectedValue === answer.value ? 'selected' : ''}`}
+          <div
+            key={answer.value}
+            className={`answer-option ${
+              selectedValue === answer.value ? "selected" : ""
+            }`}
             onClick={() => onAnswer(question.question_id, answer.value)}
           >
             <div className="answer-radio">
-              <div className={`radio-inner ${selectedValue === answer.value ? 'checked' : ''}`} />
+              <div
+                className={`radio-inner ${
+                  selectedValue === answer.value ? "checked" : ""
+                }`}
+              />
             </div>
             <div className="answer-text">
               <p>{answer.title}</p>
@@ -46,4 +50,4 @@ export function ScreenerQuestion({
       </div>
     </div>
   )
-} 
+}

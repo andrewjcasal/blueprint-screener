@@ -1,4 +1,3 @@
-import { useState } from "react"
 import "../styles/Navigation.css"
 
 type NavigationProps = {
