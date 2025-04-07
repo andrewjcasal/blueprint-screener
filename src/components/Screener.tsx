@@ -111,38 +111,31 @@ export function Screener() {
       [questionId]: value,
     }))
 
-    // Add a small delay before advancing to the next question
-    setTimeout(() => {
+    // Add a small delay before advancing to next question or submitting
+    setTimeout(async () => {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1)
+      } else {
+        // This is the last question, submit automatically
+        try {
+          setSubmitting(true)
+          const result = await submitAnswers({
+            ...answers,
+            [questionId]: value,
+          })
+
+          if (result && result.data) {
+            setAssessmentResults(result.data as SubmissionResult)
+          }
+          setSubmitSuccess(true)
+        } catch (err) {
+          console.error("Error submitting answers:", err)
+          setError("Failed to submit answers. Please try again.")
+        } finally {
+          setSubmitting(false)
+        }
       }
-    }, 500) // delay to show the selection
-  }
-
-  const isLastQuestion = currentQuestionIndex === questions.length - 1
-
-  const handleSubmit = async () => {
-    // Only proceed if we have all answers
-    if (Object.keys(answers).length !== questions.length) {
-      return
-    }
-
-    try {
-      setSubmitting(true)
-      const result = await submitAnswers(answers)
-
-      // Store the assessment results with scores and recommendations
-      if (result && result.data) {
-        setAssessmentResults(result.data as SubmissionResult)
-      }
-
-      setSubmitSuccess(true)
-    } catch (err) {
-      console.error("Error submitting answers:", err)
-      setError("Failed to submit answers. Please try again.")
-    } finally {
-      setSubmitting(false)
-    }
+    }, 500)
   }
 
   // If submission was successful, show assessment results
@@ -293,23 +286,6 @@ export function Screener() {
         onAnswer={handleAnswer}
         selectedValue={answers[currentQuestion.question_id]}
       />
-
-      {isLastQuestion && (
-        <div
-          className="navigation-buttons"
-          style={{ justifyContent: "center", marginTop: "2rem" }}
-        >
-          <button
-            className="submit-button"
-            onClick={handleSubmit}
-            disabled={
-              Object.keys(answers).length !== questions.length || submitting
-            }
-          >
-            {submitting ? "Submitting..." : "Submit"}
-          </button>
-        </div>
-      )}
     </div>
   )
 } 
