@@ -1,54 +1,49 @@
-# React + TypeScript + Vite
+Link to deploy on Netlify
+https://blueprint-acasal.netlify.app/
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The Problem:
+Create a diagnostic screener with 8 questions and a way to submit responses.
 
-Currently, two official plugins are available:
+The Solution + Reasoning Behind My Tech Choices:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+This app uses:
+- Vite for the frontend
+- Supabase Edge Functions for the backend
+- Netlify for static hosting
 
-## Expanding the ESLint configuration
+Why Vite?
+- Fast development experience and optimized build output
+- Ideal for projects where performance and developer experience matter
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Why Supabase?
+- Supabase Edge Functions work similarly to AWS Lambdas, aligning with how Blueprint uses serverless.
+- Offers a full suite (auth, database, file storage) and generous free tier, which reduces configuration burden.
+- Row Level Security (RLS) protects sensitive data by default — unauthenticated users can’t access data they shouldn’t.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+How I would deploy this as a true production app:
+If traffic or feature scope grows:
+- We could consider moving to Next.js for better SSR/ISR capabilities and routing flexibility.
+- If more complex backend logic emerges (e.g., analytics, data modeling, scraping), spin up a Python API on AWS Lambda or Fargate alongside the current stack.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Security:
+- Store environment variables securely, never in the frontend.
+- Keep API keys in Supabase Edge Function environment config — not exposed to the browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Observability and Troubleshooting:
+- Add Sentry for frontend error boundaries and backend issue tracking.
+- Use Netlify deploy and usage logs during early stages; consider CloudWatch if migrating backend infra to AWS.
+- Add Amplitude for event-level tracking to identify where users drop off or encounter issues.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+
+Trade-offs and Future Improvements
+- To simplify the demo, I included two tabs in the same app (for viewing submissions and creating one). In a full build, these might be two distinct portals (patient/therapist).
+- Didn’t include unit or E2E tests — in a production scenario (especially if HIPAA compliance is required), I’d add tests to guarantee input validation, data integrity, and access controls.
+- Could improve mobile responsiveness and keyboard navigation for a better a11y/UX experience.
+
+Code Samples from Other Projects
+Unfortunately, most recent code is in private client repos via Upwork. That said, one project I’m proud of:
+
+I built a unified data source that pulled from two separate mortgage/loan APIs. I resolved mismatches by creating a normalized addresses table, then standardized and de-duped input by trimming, lowercasing, and shortening address strings to match across APIs.
+
+LinkedIn profile: https://www.linkedin.com/in/andrewcasal/
+Resume: https://docs.google.com/document/d/1eswWdrU6jgpbUIQADIxHGXQEe-pW5uv_2pQ-qXu2jiU/edit?usp=sharing
