@@ -38,6 +38,7 @@ Observability and Troubleshooting:
 Trade-offs and Future Improvements
 - To simplify the demo, I included two tabs in the same app (for viewing submissions and creating one). In a full build, these might be two distinct portals (patient/therapist).
 - Didn’t include unit or E2E tests — in a production scenario (especially if HIPAA compliance is required), I’d add tests to guarantee input validation, data integrity, and access controls.
+- Could move the screener from the `get-screener` edge function into a `screeners` table, and dynamically fetch screeners. Could move the logic to evaluate screener depending on futher understanding of company needs.
 - Could improve mobile responsiveness and keyboard navigation for a better a11y/UX experience.
 
 Code Samples from Other Projects
